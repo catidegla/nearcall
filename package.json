@@ -1,0 +1,46 @@
+{
+  "name": "nearcall",
+  "version": "0.1.0",
+  "description": "Local-first router with an OpenAI-compatible surface. Point any OpenAI client at it and requests reach a paid API only when nothing local can serve them. Zero dependencies.",
+  "type": "module",
+  "bin": {
+    "nearcall": "bin/nearcall.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/router.test.mjs test/server.test.mjs test/config.test.mjs",
+    "serve": "node bin/nearcall.mjs serve"
+  },
+  "keywords": [
+    "llm",
+    "router",
+    "proxy",
+    "ollama",
+    "lm-studio",
+    "llama-cpp",
+    "local-llm",
+    "openai-compatible",
+    "openai-proxy",
+    "local-first",
+    "cost-optimization",
+    "fallback"
+  ],
+  "author": "Christ-loisele Atidegla",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/catidegla/nearcall.git"
+  },
+  "homepage": "https://github.com/catidegla/nearcall#readme",
+  "bugs": {
+    "url": "https://github.com/catidegla/nearcall/issues"
+  }
+}
