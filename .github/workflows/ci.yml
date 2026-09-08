@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ['20', '22']
+
+    name: ${{ matrix.os }} / node ${{ matrix.node }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: npm test
+
+      # The CLI has to behave sensibly with nothing running, which is every
+      # user's first run.
+      - name: Behaves with no backend available
+        shell: bash
+        run: |
+          node bin/nearcall.mjs --version
+          node bin/nearcall.mjs --help > /dev/null
+
+          # doctor exits 1 when no local backend answers, so a script can
+          # notice rather than silently routing everything to a paid API.
+          if node bin/nearcall.mjs doctor > /dev/null 2>&1; then
+            echo "doctor should exit non-zero when nothing is running"
+            exit 1
+          fi
+
+          if node bin/nearcall.mjs route "hello" > /dev/null 2>&1; then
+            echo "route should exit non-zero when no backend can serve"
+            exit 1
+          fi
+
+          node bin/nearcall.mjs config | node -e "
+            let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{
+              const c=JSON.parse(d);
+              if (!Array.isArray(c.backends) || c.backends.length < 3) throw new Error('defaults missing');
+              if (c.backends.some(b => !b.local)) throw new Error('a cloud backend appeared with no key set');
+              console.log('defaults are local only when no key is present');
+            })"
+
+      - name: Server starts and answers on a real socket
+        shell: bash
+        run: |
+          node bin/nearcall.mjs serve --port 8799 &
+          pid=$!
+          sleep 3
+
+          health=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8799/health)
+          stats=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8799/stats)
+
+          kill $pid 2>/dev/null || true
+
+          if [ "$health" != "200" ] || [ "$stats" != "200" ]; then
+            echo "health=$health stats=$stats"
+            exit 1
+          fi
+          echo "server answered on /health and /stats"
+
+  package:
+    name: Package contents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: The published tarball actually runs
+        run: |
+          npm pack --pack-destination /tmp
+          mkdir /tmp/consumer && cd /tmp/consumer
+          npm init -y > /dev/null
+          npm i /tmp/nearcall-*.tgz
+
+          # A wrong "files" field is the most common publish bug, and it only
+          # shows up once somebody installs it.
+          ./node_modules/.bin/nearcall --version
+          ./node_modules/.bin/nearcall config > /dev/null
+          echo "installed package works"
+
+      - name: No runtime dependencies
+        run: |
+          count=$(node -p "Object.keys(require('./package.json').dependencies || {}).length")
+          if [ "$count" != "0" ]; then
+            echo "expected zero runtime dependencies, found $count"
+            exit 1
+          fi
+          echo "zero runtime dependencies"
