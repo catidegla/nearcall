@@ -34,6 +34,10 @@ LiteLLM is a good gateway and it is built for a platform team: a Python service,
 
 nearcall is **one command, zero dependencies, and works before you write any config.** It also does one thing LiteLLM does not: it tells you *why*.
 
+LiteLLM is not the only alternative and it would be misleading to frame it as a straight choice between two. [`lightport`](https://www.npmjs.com/package/lightport) is the closest thing on npm, a lightweight gateway that makes providers OpenAI-compatible, and Portkey ships a Node client for its hosted gateway. Both are worth a look, and if you want a managed gateway with a dashboard and spend controls, take one of those rather than this. What is here is the local case: no service to run, no account, and a routing decision you can read.
+
+Checked on npm on 8 September 2026.
+
 ## It explains itself
 
 ```bash
