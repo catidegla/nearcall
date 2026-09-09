@@ -2,7 +2,7 @@
 
 # nearcall
 
-**Keep the call local. Pay only when you cannot.**
+Keep the call local. Pay only when you cannot.
 
 An OpenAI-compatible router that sends requests to whatever you have running on your own machine, and reaches a paid API only when nothing local can serve them.
 
@@ -34,7 +34,7 @@ LiteLLM is a good gateway and it is built for a platform team: a Python service,
 
 nearcall is **one command, zero dependencies, and works before you write any config.** It also does one thing LiteLLM does not: it tells you *why*.
 
-LiteLLM is not the only alternative and it would be misleading to frame it as a straight choice between two. [`lightport`](https://www.npmjs.com/package/lightport) is the closest thing on npm, a lightweight gateway that makes providers OpenAI-compatible, and Portkey ships a Node client for its hosted gateway. Both are worth a look, and if you want a managed gateway with a dashboard and spend controls, take one of those rather than this. What is here is the local case: no service to run, no account, and a routing decision you can read.
+LiteLLM is not the only alternative and it would be misleading to frame it as a straight choice between two. [`lightport`](https://www.npmjs.com/package/lightport) is the closest thing on npm, a lightweight gateway that makes providers OpenAI-compatible, and Portkey ships a Node client for its hosted gateway. Both are worth a look, and if you want a managed gateway with a dashboard and spend controls, take one of those, not this. What is here is the local case: no service to run, no account, and a routing decision you can read.
 
 Checked on npm on 8 September 2026.
 
@@ -83,7 +83,7 @@ In order:
 
 1. **An explicit `x-nearcall-backend` header** wins over everything, including health. If you ask for a specific backend you usually know something the router does not.
 2. **Anything that cannot serve the request is ruled out.** Context window too small, no tool support, no vision support, over your per-request budget, unhealthy, or disabled.
-3. **Local before remote.** Deliberately ahead of latency: a local model that takes two seconds still beats a cloud model that takes one and charges for it. That is the whole reason you installed this.
+3. **Local before remote.** Deliberately ahead of latency: a local model that takes two seconds still beats a cloud model that takes one and charges for it.
 4. **Then priority, then cost, then observed latency.**
 
 `supportsVision` is opt-in. A backend that does not declare it is assumed not to have it, because silently dropping an image produces a confidently wrong answer rather than an error.
@@ -92,7 +92,7 @@ In order:
 
 A backend that passes a health probe can still fail a completion, so a failed request walks down the ranked fallback list.
 
-**Only transport failures and `5xx` responses trigger a fallback.** A `400` means the request itself is malformed, and sending it on to a second, paid backend would turn a client bug into a bill.
+Only transport failures and `5xx` responses trigger a fallback. A `400` means the request itself is malformed, and sending it on to a second, paid backend would turn a client bug into a bill.
 
 Health needs two consecutive failures before a backend is marked down. One refused connection while a model reloads should not divert your session to a paid API.
 
@@ -130,7 +130,7 @@ None required. The defaults cover Ollama, LM Studio and llama.cpp on their docum
 
 The `models` map translates names, so your code can keep asking for `gpt-4o` while a local model answers it.
 
-A config file **replaces** the default backends rather than merging with them, so what you write is the complete picture rather than something layered on top of defaults you cannot see. Unknown options are rejected by name, because a silently ignored `prefrLocal` is a bad afternoon.
+A config file **replaces** the default backends rather than merging with them, so what you write is the complete picture, not something layered on top of defaults you cannot see. Unknown options are rejected by name, because a silently ignored `prefrLocal` is a bad afternoon.
 
 Keys are read from the environment at call time and never stored in config.
 
@@ -169,9 +169,9 @@ $ nearcall doctor
 
 ## What has and has not been verified
 
-41 tests, run on Linux, macOS and Windows. The end-to-end tests stand up real HTTP servers rather than stubbing `fetch`, because the parts most likely to break are the ones a stub hides: streaming, header propagation, and falling back after an upstream returns `500`.
+41 tests, run on Linux, macOS and Windows. The end-to-end tests stand up real HTTP servers instead of stubbing `fetch`, because the parts most likely to break are the ones a stub hides: streaming, header propagation, and falling back after an upstream returns `500`.
 
-**It has not yet been run against a live Ollama or LM Studio.** The backends in the test suite are mocks that speak the OpenAI wire format, which is the right way to test routing deterministically, but it is not the same as a real model server with real timing. If you run it against one, an issue describing what broke is the most useful thing you could send.
+It has not yet been run against a live Ollama or LM Studio. The backends in the test suite are mocks that speak the OpenAI wire format, which is the right way to test routing deterministically, but it is not the same as a real model server with real timing. If you run it against one, an issue describing what broke is the most useful thing you could send.
 
 ## Contributing
 
